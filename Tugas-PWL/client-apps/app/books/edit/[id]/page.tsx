@@ -1,0 +1,274 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { GET_BOOK_BY_ID, UPDATE_BOOK } from "@/components/apis/BookServices";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminLayout from "@/components/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Save } from "lucide-react";
+import Link from "next/link";
+
+export default function EditBook() {
+  const params = useParams();
+  const router = useRouter();
+  const id = Number(params.id);
+
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [rating, setRating] = useState(0);
+  const [views, setViews] = useState(0);
+  const [language, setLanguage] = useState("");
+  const [isFree, setIsFree] = useState(true);
+  const [sinopsis, setSinopsis] = useState("");
+  const [story, setStory] = useState("");
+  const [image, setImage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  const loadBook = async () => {
+    try {
+      const result = await GET_BOOK_BY_ID(id);
+      if (result.success && result.data) {
+        const book = result.data;
+        setTitle(book.title ?? "");
+        setAuthor(book.author ?? "");
+        setRating(Number(book.rating ?? 0));
+        setViews(book.views ?? 0);
+        setLanguage(book.language ?? "");
+        setIsFree(book.is_free ?? false);
+        setSinopsis(book.sinopsis ?? "");
+        setStory(book.story ?? "");
+        setImage(book.image ?? "");
+      }
+    } catch (error) {
+      alert("Gagal memuat data buku");
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBook();
+  }, []);
+
+  const save = async () => {
+    setIsLoading(true);
+    try {
+      const result = await UPDATE_BOOK(id, {
+        id,
+        title,
+        author,
+        rating,
+        views,
+        is_free: isFree,
+        language,
+        sinopsis,
+        story,
+        image,
+      });
+
+      if (result.success) {
+        alert("Update berhasil");
+        router.push("/books");
+      } else {
+        alert("Gagal mengupdate buku");
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoadingData) {
+    return (
+      <ProtectedRoute>
+        <AdminLayout>
+          <div className="p-6 flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Memuat data buku...</p>
+            </div>
+          </div>
+        </AdminLayout>
+      </ProtectedRoute>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <AdminLayout>
+        <div className="p-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <Link href="/books">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Kembali
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-800">Edit Buku</h1>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Form Edit Buku</CardTitle>
+              <CardDescription>
+                Perbarui informasi buku yang ada di perpustakaan
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="title">Judul Buku</Label>
+                <Input
+                  id="title"
+                  placeholder="Masukkan judul buku"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              {/* Author */}
+              <div className="space-y-2">
+                <Label htmlFor="author">Penulis</Label>
+                <Input
+                  id="author"
+                  placeholder="Masukkan nama penulis"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                />
+              </div>
+
+              {/* Rating & Views */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rating">Rating (0-5)</Label>
+                  <Input
+                    id="rating"
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    placeholder="0"
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="views">Views</Label>
+                  <Input
+                    id="views"
+                    type="number"
+                    placeholder="0"
+                    value={views}
+                    onChange={(e) => setViews(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              {/* Language & Free Book */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Bahasa</Label>
+                  <Input
+                    id="language"
+                    placeholder="Contoh: Indonesia, English"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-4 pt-6">
+                  <Switch
+                    id="isFree"
+                    checked={isFree}
+                    onCheckedChange={setIsFree}
+                  />
+                  <Label htmlFor="isFree" className="cursor-pointer">
+                    {isFree ? "Buku Gratis" : "Buku Berbayar"}
+                  </Label>
+                </div>
+              </div>
+
+              {/* Synopsis */}
+              <div className="space-y-2">
+                <Label htmlFor="sinopsis">Sinopsis</Label>
+                <Textarea
+                  id="sinopsis"
+                  placeholder="Tuliskan sinopsis buku"
+                  value={sinopsis}
+                  onChange={(e) => setSinopsis(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              {/* Story */}
+              <div className="space-y-2">
+                <Label htmlFor="story">Cerita / Konten</Label>
+                <Textarea
+                  id="story"
+                  placeholder="Tuliskan cerita atau konten buku"
+                  value={story}
+                  onChange={(e) => setStory(e.target.value)}
+                  rows={6}
+                />
+              </div>
+
+              {/* Image URL */}
+              <div className="space-y-2">
+                <Label htmlFor="image">URL Gambar</Label>
+                <Input
+                  id="image"
+                  placeholder="https://example.com/cover.jpg"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                />
+                {image && (
+                  <div className="mt-2">
+                    <img 
+                      src={image} 
+                      alt="Preview" 
+                      className="h-32 w-auto object-cover rounded-lg border"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={save}
+                  disabled={isLoading}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Perbarui Buku
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => router.push("/books")}
+                >
+                  Batal
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
+    </ProtectedRoute>
+  );
+}

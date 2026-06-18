@@ -9,12 +9,12 @@ apiEndpoints:
   books:
     host: "*"
     paths: ["/api/books", "/api/books/*"]
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
   users:
     host: "*"
     paths: ["/api/users", "/api/users/*"]
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
   health:
     host: "*"
@@ -52,9 +52,9 @@ pipelines:
     policies:
       - cors:
           - action:
-              origin: "*"
+              origin: "http://192.168.100.15:3000"
               credentials: true
-              methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
+              methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
               allowedHeaders: "Content-Type,Authorization"
       - log:
           - action:
@@ -76,9 +76,9 @@ pipelines:
     policies:
       - cors:
           - action:
-              origin: "*"
+              origin: "http://192.168.100.15:3000"
               credentials: true
-              methods: "GET,HEAD,PUT,PATCH,POST,DELETE"
+              methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
               allowedHeaders: "Content-Type,Authorization"
       - log:
           - action:
@@ -122,7 +122,7 @@ pipelines:
     policies:
       - cors:
           - action:
-              origin: "*"
+              origin: "http://192.168.100.15:3000"
               credentials: true
       - log:
           - action:
